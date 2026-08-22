@@ -1,0 +1,10 @@
+# Ansible managed
+# Increase file descriptor limits for containers
+*    soft    nofile    65536
+*    hard    nofile    65536
+root soft    nofile    65536
+root hard    nofile    65536
+
+# Increase process limits
+*    soft    nproc     65536
+*    hard    nproc     65536

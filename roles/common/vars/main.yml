@@ -1,0 +1,23 @@
+---
+base_packages:
+  - vim
+  - htop
+  - curl
+  - wget
+  - git
+  - net-tools
+  - dnsutils
+  - jq
+  - tree
+  - unzip
+  - tmux
+  - ncdu
+  - rsync
+  - logrotate
+  - cron
+  - bash-completion
+  - software-properties-common
+  - apt-transport-https
+  - gnupg
+  - lsb-release
+  - ca-certificates

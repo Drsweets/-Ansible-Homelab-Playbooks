@@ -1,0 +1,63 @@
+---
+- name: Check if K3s is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Download K3s install script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /tmp/k3s-install.sh
+    mode: '0755'
+  when: not k3s_binary.stat.exists
+
+- name: Install K3s server
+  ansible.builtin.command: |
+    /tmp/k3s-install.sh
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_EXEC: "server {{ k3s_server_args | join(' ') }}"
+    K3S_TOKEN: "{{ k3s_token }}"
+  when: not k3s_binary.stat.exists
+  register: k3s_install
+  changed_when: k3s_install.rc == 0
+
+- name: Wait for K3s node to be ready
+  ansible.builtin.command: |
+    /usr/local/bin/k3s kubectl wait --for=condition=Ready node/{{ hostname | default(inventory_hostname) }} --timeout=300s
+  changed_when: false
+  retries: 10
+  delay: 10
+  until: k3s_node_ready.rc == 0
+  register: k3s_node_ready
+
+- name: Ensure .kube directory exists for admin user
+  ansible.builtin.file:
+    path: "/home/{{ admin_user }}/.kube"
+    state: directory
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0755'
+
+- name: Copy kubeconfig to admin user
+  ansible.builtin.copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "/home/{{ admin_user }}/.kube/config"
+    owner: "{{ admin_user }}"
+    group: "{{ admin_user }}"
+    mode: '0600'
+    remote_src: yes
+
+- name: Set KUBECONFIG environment variable
+  ansible.builtin.lineinfile:
+    path: "/home/{{ admin_user }}/.bashrc"
+    line: 'export KUBECONFIG=/home/{{ admin_user }}/.kube/config'
+    create: yes
+    mode: '0644'
+
+- name: Create agent join script
+  ansible.builtin.template:
+    src: join-agent.sh.j2
+    dest: /tmp/koin-agent.sh
+    mode: '0755'
+  when: groups['k3s_agents'] | length > 0

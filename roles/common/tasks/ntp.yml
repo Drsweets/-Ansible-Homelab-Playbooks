@@ -1,0 +1,23 @@
+---
+- name: Install chrony (modern NTP client)
+  ansible.builtin.apt:
+    name: chrony
+    state: present
+
+- name: Configure chrony
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+    mode: '0644'
+  notify: Restart chrony
+
+- name: Start and enable chrony
+  ansible.builtin.systemd:
+    name: chronyd
+    state: started
+    enabled: yes
+
+- name: Set timezone
+  ansible.builtin.timezone:
+    name: "{{ timezone }}"
+  notify: Restart cron

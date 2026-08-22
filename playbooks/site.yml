@@ -1,0 +1,23 @@
+---
+- name: Bootstrap and configure all homelab nodes
+  hosts: homelab
+  become: yes
+  roles:
+    - common
+    - ssh-hardening
+    - docker
+  tags: [bootstrap, common, docker, hardening]
+
+- name: Deploy K3s control plane
+  hosts: k3s_servers
+  become: yes
+  roles:
+    - k3s-server
+  tags: [k3s, k3s-server]
+
+- name: Deploy K3s worker nodes
+  hosts: k3s_agents
+  become: yes
+  roles:
+    - k3s-agent
+  tags: [k3s, k3s-agent]

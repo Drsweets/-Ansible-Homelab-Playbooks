@@ -1,0 +1,52 @@
+---
+- name: Bootstrap nodes for Ansible management
+  hosts: homelab
+  become: yes
+  gather_facts: no
+  pre_tasks:
+    - name: Wait for host to be reachable
+      ansible.builtin.wait_for_connection:
+        timeout: 60
+      tags: always
+
+    - name: Gather facts
+      ansible.builtin.setup:
+      tags: always
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      tags: apt
+
+    - name: Install required Python packages for Ansible
+      ansible.builtin.apt:
+        name:
+          - python3
+          - python3-apt
+          - python3-pip
+          - sudo
+          - curl
+          - ca-certificates
+        state: present
+        update_cache: yes
+      tags: python
+
+    - name: Ensure admin user exists
+      ansible.builtin.user:
+        name: "{{ admin_user }}"
+        state: present
+        shell: /bin/bash
+        create_home: yes
+        groups: sudo
+        append: yes
+      tags: users
+
+    - name: Ensure sudo group has passwordless sudo
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+      tags: sudo

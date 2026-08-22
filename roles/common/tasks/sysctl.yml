@@ -1,0 +1,23 @@
+---
+- name: Load br_netfilter module
+  ansible.builtin.modprobe:
+    name: br_netfilter
+    state: present
+  tags: sysctl
+
+- name: Ensure br_netfilter loads on boot
+  ansible.builtin.lineinfile:
+    path: /etc/modules-load.d/k8s.conf
+    line: br_netfilter
+    create: yes
+    mode: '0644'
+  tags: sysctl
+
+- name: Apply sysctl settings
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop: "{{ sysctl_options }}"
+  tags: sysctl

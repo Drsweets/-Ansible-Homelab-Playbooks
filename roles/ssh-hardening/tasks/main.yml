@@ -1,0 +1,4 @@
+---
+- name: Include SSH configuration tasks
+  ansible.builtin.include_tasks: config.yml
+  tags: ssh-hardening

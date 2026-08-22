@@ -1,0 +1,45 @@
+# Ansible managed: {{ ansible_managed }}
+# Hardened SSH configuration
+
+Port {{ sshd_port | default(22) }}
+AddressFamily any
+ListenAddress 0.0.0.0
+ListenAddress ::
+
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+# Authentication
+PermitRootLogin {{ ssh_allow_root_login | default('no') }}
+PasswordAuthentication {{ ssh_password_authentication | default('no') }}
+PermitEmptyPasswords {{ ssh_permit_empty_password | default('no') }}
+MaxAuthTries {{ ssh_max_auth_tries | default(3) }}
+MaxSessions 2
+PubkeyAuthentication yes
+AuthenticationMethods publickey
+
+# Security
+X11Forwarding no
+AllowTcpForwarding no
+PermitTunnel no
+GatewayPorts no
+AllowAgentForwarding no
+
+# Logging
+SyslogFacility AUTH
+LogLevel VERBOSE
+
+# Idle timeout
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Environment
+AcceptEnv LANG LC_*
+
+# Subsystem
+Subsystem sftp /usr/lib/openssh/sftp-server
+
+# Cryptography
+Ciphers {{ ssh_ciphers | join(',') }}
+MACs {{ ssh_macs | join(',') }}
+KexAlgorithms {{ ssh_kex_algorithms | join(',') }}

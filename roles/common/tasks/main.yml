@@ -1,0 +1,48 @@
+---
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+  ignore_errors: yes
+  tags: common
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  tags: common
+
+- name: Include package tasks
+  ansible.builtin.include_tasks: packages.yml
+  tags: common, packages
+
+- name: Include NTP tasks
+  ansible.builtin.include_tasks: ntp.yml
+  tags: common, ntp
+
+- name: Include sysctl tasks
+  ansible.builtin.include_tasks: sysctl.yml
+  tags: common, sysctl
+
+- name: Set system limits
+  ansible.builtin.template:
+    src: limits.conf.j2
+    dest: /etc/security/limits.d/99-ansible.conf
+    mode: '0644'
+  tags: common, limits
+
+- name: Create admin user
+  ansible.builtin.user:
+    name: "{{ admin_user }}"
+    state: present
+    shell: /bin/bash
+    create_home: yes
+    groups: sudo
+    append: yes
+  tags: common, users
+
+- name: Add SSH public key for admin user
+  ansible.posix.authorized_key:
+    user: "{{ admin_user }}"
+    state: present
+    key: "{{ admin_ssh_key }}"
+  when: admin_ssh_key | length > 0
+  tags: common, users

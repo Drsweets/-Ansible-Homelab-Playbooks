@@ -1,0 +1,47 @@
+---
+# Global variables for all nodes
+
+# System
+timezone: UTC
+ntp_servers:
+  - pool.ntp.org
+  - time.google.com
+
+# Docker
+docker_version: "5:27.*"
+docker_users:
+  - "{{ admin_user }}"
+
+# K3s
+k3s_version: "v1.30.2+k3s1"
+# IMPORTANT: Set a static token before first run, or agents will fail to join
+# Example: ansible-playbook ... -e k3s_token=your-secure-token-32chars
+k3s_token: "{{ vault_k3s_token | default(lookup('env', 'K3S_TOKEN') | default(omit, true)) }}"
+
+# System hardening
+sshd_port: 22
+ssh_allow_root_login: "no"
+ssh_password_authentication: "no"
+ssh_permit_empty_password: "no"
+ssh_max_auth_tries: 3
+
+# User management
+admin_user: admin
+admin_ssh_key: "{{ lookup('file', inventory_dir + '/../../files/authorized_keys/admin.pub', errors='ignore') | default('') }}"
+
+# Sysctl settings
+sysctl_options:
+  - name: net.ipv4.ip_forward
+    value: 1
+  - name: net.bridge.bridge-nf-call-iptables
+    value: 1
+  - name: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+  - name: vm.swappiness
+    value: 10
+  - name: vm.overcommit_memory
+    value: 1
+  - name: kernel.panic
+    value: 10
+  - name: kernel.panic_on_oops
+    value: 1

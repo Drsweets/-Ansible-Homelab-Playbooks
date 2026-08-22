@@ -1,0 +1,12 @@
+.ansible/
+*.retry
+*.log
+inventory/*/hosts.ini
+files/authorized_keys/*.pub
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.idea/

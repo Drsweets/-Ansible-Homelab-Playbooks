@@ -1,0 +1,10 @@
+---
+k3s_role: server
+k3s_server_args:
+  - "--tls-san={{ ansible_default_ipv4.address }}"
+  - "--disable=traefik"
+  - "--flannel-backend=wireguard-native"
+  - "--write-kubeconfig-mode=644"
+  - "--node-name={{ hostname | default(inventory_hostname) }}"
+  - "--kubelet-arg=eviction-hard=memory.available<100Mi,nodefs.available<10%"
+  - "--kubelet-arg=eviction-soft=memory.available<200Mi,nodefs.available<15%"
